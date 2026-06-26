@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Buscador Neumáticos</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      background-color: #f5f5f5;
+      padding: 15px;
+font-size: 13px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 15px;
+	 margin-top:70px;
+    }
+
+
+.precio-unitario {
+  color: #888;
+  font-size: 12px;
+  text-align: right;
+}
+
+
+.input-desc {
+  width: 80px;
+  padding: 12px;
+  border-radius: 15px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+
+    #buscador {
+      flex: 1;
+      padding: 15px;
+      border-radius: 15px;
+      border: 1px solid #ccc;
+    }
+
+    .boton {
+      padding: 12px 15px;
+      border-radius: 15px;
+      border: none;
+      background-color: #ff7a00;
+      color: white;
+      cursor: pointer;
+    }
+
+    .tabla {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+.tabla .fila {
+      display: grid;
+      grid-template-columns: 40px 140px 1fr 90px 70px;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      align-items: center;
+    }
+
+    .header {
+      background: #ff7a00;
+      color: white;
+      font-weight: bold;
+    }
+
+    /* MODAL */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    
+.modal-contenido {
+  background: white;
+  width: 85%;              /* ✅ más ancho */
+  max-width: 900px;        /* ✅ límite en pantallas grandes */
+  height: 85%;             /* ✅ más alto */
+  border-radius: 20px;
+  padding: 30px;           /* ✅ más aire interno */
+  overflow-y: auto;
+background: linear-gradient(180deg, #ffffff 60%, #fff7f0 100%);
+
+  box-shadow: 0 15px 40px rgba(0,0,0,0.3); /* ✅ más pro */
+}
+
+
+    .cerrar {
+      float: right;
+      cursor: pointer;
+    }
+
+    
+
+
+
+
+.presupuesto-item {
+  display: grid;
+  grid-template-columns: 1fr 120px 80px 80px 70px 40px;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+
+.presupuesto-item div {
+  white-space: nowrap; /* ✅ evita que el precio se rompa */
+}
+
+
+
+.total {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 15px;
+  background-color: #ff7a00;
+  color: white;
+  font-size: 20px;
+  text-align: right;
+  font-weight: bold;
+}
+
+
+.seleccionado {
+  background-color: #ffe5cc; /* naranja suave */
+}
+
+
+.fila:hover:not(.header) {
+  background-color: #fff3e6;
+}
+
+
+.seleccionado {
+  background-color: #ffe5cc;
+}
+
+
+.bloque {
+  background: white;
+  border: 1px solid #f0e3d7;
+  border-left: 4px solid #ff7a00; /* ✅ detalle naranja */
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+
+
+.input-cliente {
+  width: 100%;
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  display: block;          /* ✅ clave */
+  margin: 10px auto 0 auto; /* ✅ lo centra */
+  box-sizing: border-box;  /* ✅ evita corrimientos */
+}
+
+
+
+
+.encabezado-presupuesto {
+  display: grid;
+  grid-template-columns: 1fr 120px 80px 80px 120px;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+
+
+
+.encabezado-presupuesto div:nth-child(2),
+.encabezado-presupuesto div:nth-child(3),
+.encabezado-presupuesto div:nth-child(4),
+.presupuesto-item div:last-child {
+  text-align: right;
+}
+
+.presupuesto-item div {
+  white-space: nowrap;
+}
+
+
+
+
+background-color: #fff3e6;
+border-radius: 10px;
+padding: 6px 10px;
+
+}
+
+
+
+.presupuesto-item input {
+  width: 100%;
+  padding: 8px;             /* ✅ un poco más aire */
+  border-radius: 12px;      /* ✅ más redondeado */
+  border: 1px solid #ddd;   /* ✅ más suave */
+  font-size: 13px;
+  background-color: #fff;   /* ✅ blanco limpio */
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); /* ✅ leve profundidad */
+  text-align: center;       /* ✅ queda más ordenado */
+
+}
+
+#listaClientes {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  max-height: 140px;
+  overflow-y: auto;
+  margin-top: 5px;
+}
+
+.cliente-item {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.cliente-item:hover {
+  background-color: #fff3e6;
+}
+
+.cliente-item small {
+  color: #777;
+}
+
+
+}
+
+  </style>
+</head>
+
+<body>
+
+
+<div class="topbar">
+  <input id="buscador" placeholder="Buscar..." onkeyup="filtrar()">
+
+
+<input 
+  id="descuentoGlobal" 
+  type="number" 
+  placeholder="% desc" 
+  class="input-desc"
+  oninput="aplicarDescuentoGlobal()"
+>
+
+
+  <button class="boton" onclick="abrirModal()">Presupuesto</button>                  
+</div>
+
+
+<div class="tabla">
+  <div class="fila header">
+    <div></div><div>Cod</div><div>Descripción</div><div>Precio</div><div>Stock</div>
+  </div>
+  <div id="lista"></div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+  <div class="modal-contenido">
+
+
+ 
+<span class="cerrar" onclick="cerrarModal()">✖</span>
+
+<div class="bloque">
+  <h3>Cliente</h3>
+  
+<input 
+  id="clienteInput" 
+  class="input-cliente" 
+  placeholder="Buscar cliente..." 
+  onkeyup="filtrarClientes()"
+>
+
+<div id="listaClientes"></div>
+
+</div>
+
+<div class="bloque">
+  
+  
+
+<div class="encabezado-presupuesto">
+  <div>Producto</div>
+  <div>Precio</div>
+  <div>Cant</div>
+  <div>Desc %</div>
+  <div>Subtotal</div>
+</div>
+
+
+<div id="presupuesto"></div>
+
+</div>
+
+
+
+    <div class="total" id="total">Total: $0</div>
+
+
+
+
+<div style="text-align:right; margin-top:10px;">
+  <button class="boton" onclick="generarPreview()">         
+    Descargar
+  </button>
+
+<button class="boton" onclick="copiarPresupuesto()">
+  Copiar 
+</button>
+
+</div>
+
+  </div>
+</div>
+
+
+
+<script>
+
+function eliminarProducto(cod) {
+  console.log("Eliminando:", cod); // 👈 debug
+
+  delete seleccionados[cod];
+
+  renderPresupuesto();
+  mostrarLista(productos);
+}
+
+
+
+let productos = [];
+
+
+fetch('productos.csv')
+  .then(response => response.text())
+  .then(data => {
+
+    let filas = data.split("\n");
+
+    productos = [];
+
+    for (let i = 1; i < filas.length; i++) {
+
+      let fila = filas[i].split(";");
+
+      if (fila.length < 4) continue;
+
+      productos.push({
+        codigo: fila[0].trim(),
+        descripcion: fila[1].trim(),
+        precio: Number(
+          fila[2]
+            .replace("$", "")
+            .replace(/\./g, "")
+            .trim()
+        ),
+        stock: Number(fila[3])
+      });
+    }
+
+    mostrarLista(productos);
+  });
+
+let modal = document.getElementById("modal");      // ✅ PEGAR ACÁ
+let buscador = document.getElementById("buscador"); // ✅ PEGAR ACÁ
+
+let seleccionados = {};
+
+
+function mostrarLista(lista) {
+  let cont = document.getElementById("lista");
+  cont.innerHTML = "";
+
+
+
+  lista.forEach(p => {
+
+    let estaSeleccionado = seleccionados[p.codigo];
+
+    let div = document.createElement("div");
+    div.className = "fila " + (estaSeleccionado ? "seleccionado" : "");
+
+
+div.ondblclick = () => {
+  copiarProducto(p);
+};
+
+
+    div.onclick = (e) => {
+      if (e.target.type !== "checkbox") {
+        toggle(p.codigo);
+        filtrar();
+      }
+    };
+
+    div.innerHTML = `
+      <input type="checkbox" ${estaSeleccionado ? "checked" : ""} onchange="toggle('${p.codigo}'); filtrar()">
+      <div>${p.codigo}</div>
+      <div>${p.descripcion}</div>
+      <div>$${Math.round(p.precio * (1 - descuentoGlobal / 100)).toLocaleString('es-AR')}</div>
+      <div>${p.stock}</div>
+    `;
+
+    cont.appendChild(div);
+  });
+}
+
+
+function filtrar() {
+  let t = buscador.value.toLowerCase();
+
+  let filtrados = productos.filter(p =>
+    p.descripcion.toLowerCase().includes(t) ||
+    p.codigo.toLowerCase().includes(t)
+  );
+
+  mostrarLista(filtrados);
+}
+
+function toggle(cod) {
+  if (seleccionados[cod]) {
+    delete seleccionados[cod];
+  } else {
+    let p = productos.find(x => x.codigo === cod);
+    seleccionados[cod] = {
+      ...p,
+      cantidad: 1,
+      descuento: 0
+    };
+  }
+}
+
+function abrirModal() {
+  modal.style.display = "flex";
+  renderPresupuesto();
+}
+
+function cerrarModal() {
+  modal.style.display = "none";
+}
+
+function renderPresupuesto() {
+  let cont = document.getElementById("presupuesto");
+  cont.innerHTML = "";
+
+  let total = 0;
+
+
+
+if (Object.keys(seleccionados).length === 0) {
+  cont.innerHTML = ""; // vacio limpio
+  document.getElementById("total").textContent = "Total: $0";
+  return;
+}
+
+
+Object.entries(seleccionados).forEach(([cod, p]) => {
+
+    
+let precioConGlobal = p.precio * (1 - descuentoGlobal / 100);
+
+let subtotal = precioConGlobal * p.cantidad * (1 - p.descuento / 100);
+
+    total += subtotal;
+
+    let div = document.createElement("div");
+    div.className = "presupuesto-item";
+
+div.innerHTML = `
+
+  <div>${p.descripcion}</div>
+
+  <div class="precio-unitario">
+    $ ${Math.round(p.precio * (1 - descuentoGlobal / 100)).toLocaleString('es-AR')}
+  </div>
+
+  <input type="number" value="${p.cantidad}" onchange="updateCant('${p.codigo}', this.value)">
+  <input type="number" value="${p.descuento}" onchange="updateDesc('${p.codigo}', this.value)">
+
+  <div>
+    <span style="color:#888; margin-right:4px;">$</span>
+    ${Math.round(subtotal).toLocaleString('es-AR')}
+  </div>
+
+  <!-- 🗑 BOTÓN ELIMINAR -->
+  <div style="text-align:center;">
+    <button onclick="eliminarProducto('${cod}')" style="
+      background:none;
+      border:none;
+      cursor:pointer;
+      font-size:16px;
+    ">
+      🗑
+    </button>
+  </div>
+
+
+
+
+    `;
+
+    cont.appendChild(div);
+  });
+
+  
+document.getElementById("total").textContent =
+"Total: $ " + Math.round(total).toLocaleString('es-AR');
+
+}
+
+function updateCant(cod, val) {
+  seleccionados[cod].cantidad = Number(val);
+  renderPresupuesto();
+}
+
+function updateDesc(cod, val) {
+  seleccionados[cod].descuento = Number(val);
+  renderPresupuesto();
+}
+
+mostrarLista(productos);
+
+
+let clientes = [
+  { nombre: "Gomeria Pirulo", cuit: "20-12345678-9", codigo: "C001" },
+  { nombre: "Neumaticos Buenos Aires", cuit: "27-87654321-5", codigo: "C002" },
+  { nombre: "Servicios JYC", cuit: "23-11223344-6", codigo: "C003" },
+  { nombre: "Neumagol", cuit: "27-99887766-3", codigo: "C004" }
+];
+
+
+function filtrarClientes() {
+
+  let input = document.getElementById("clienteInput").value.toLowerCase();
+  let cont = document.getElementById("listaClientes");
+
+  cont.innerHTML = "";
+
+  if (input === "") return;
+
+  let filtrados = clientes.filter(c =>
+    c.nombre.toLowerCase().includes(input) ||
+    c.cuit.toLowerCase().includes(input) ||
+    c.codigo.toLowerCase().includes(input)
+  );
+
+  filtrados.forEach(c => {
+
+    let div = document.createElement("div");
+    div.className = "cliente-item";
+
+    div.innerHTML = `
+      <strong>${c.nombre}</strong><br>
+      <small>${c.cuit} | ${c.codigo}</small>
+    `;
+
+    div.onclick = () => {
+      document.getElementById("clienteInput").value = c.nombre;
+      cont.innerHTML = "";
+    };
+
+    cont.appendChild(div);
+  });
+}
+
+
+
+let descuentoGlobal = 0;
+
+
+function aplicarDescuentoGlobal() {
+
+  let valor = Number(document.getElementById("descuentoGlobal").value);
+
+  descuentoGlobal = valor || 0;
+
+  if (!productos || productos.length === 0) return;
+
+  filtrar();
+}
+
+
+function copiarProducto(p) {
+
+  let precioConDesc = Math.round(p.precio * (1 - descuentoGlobal / 100));
+
+  let texto = `${p.descripcion} - $${precioConDesc.toLocaleString('es-AR')}`;
+
+  navigator.clipboard.writeText(texto);
+
+  console.log("Copiado:", texto);
+}
+
+function generarImagen() {
+
+  let cont = document.getElementById("exportar");
+
+  cont.innerHTML = "<div>OK</div>";
+
+
+}
+
+function generarPreview() {
+
+  let cont = document.getElementById("exportar");
+  cont.innerHTML = "";
+
+  let cliente = document.getElementById("clienteInput").value.trim();
+
+  let productosArray = Object.values(seleccionados);
+
+  if (productosArray.length === 0) return;
+
+  let mostrarCantidades = productosArray.some(p => p.cantidad > 1);
+
+  let total = 0;
+
+  let html = `
+  <div style="
+    font-family: Arial;
+    font-size: 14px;
+    color:#000;
+  ">
+  `;
+
+  // ✅ Cliente
+  if (cliente !== "") {
+    html += `
+      <div style="
+        font-weight:bold;
+        font-size:16px;
+        margin-bottom:10px;
+      ">
+        Cliente: ${cliente}
+      </div>
+    `;
+  }
+
+  // ✅ productos
+  productosArray.forEach(p => {
+
+    let precioUnit = Math.round(p.precio * (1 - descuentoGlobal / 100));
+    let precioFinal = precioUnit * (1 - p.descuento / 100);
+    let subtotal = precioFinal * p.cantidad;
+
+    total += subtotal;
+
+   html += `
+  <div style="
+    display:grid;
+    grid-template-columns: 1fr 60px 20px 60px;
+    gap:10px;
+    font-size:13px;
+    padding:6px 0;
+    border-bottom:1px solid #eee;
+    align-items:center;
+  ">
+
+    <!-- Producto -->
+    <div style="
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    ">
+      ${p.descripcion}
+    </div>
+
+    <!-- Precio -->
+    <div style="
+      text-align:right;
+      font-variant-numeric: tabular-nums;
+    ">
+      $${Math.round(precioFinal).toLocaleString('es-AR')}
+    </div>
+
+    <!-- Cantidad (si no se usa queda vacío pero ocupa lugar) -->
+    <div style="
+      text-align:right;
+      font-variant-numeric: tabular-nums;
+    ">
+      ${mostrarCantidades ? `x${p.cantidad}` : ""}
+    </div>
+
+    <!-- Subtotal -->
+    <div style="
+      text-align:right;
+      font-weight:bold;
+      font-variant-numeric: tabular-nums;
+    ">
+      $${Math.round(subtotal).toLocaleString('es-AR')}
+
+
+    </div>
+
+
+
+  </div>
+
+`;   
+  });
+
+  // ✅ TOTAL
+  html += `
+    <div style="
+      margin-top:15px;
+      padding-top:10px;
+      border-top:2px solid #eee;
+      text-align:right;
+      font-size:18px;
+      font-weight:bold;
+      color:#ff7a00;
+    ">
+      TOTAL: $${Math.round(total).toLocaleString('es-AR')}
+    </div>
+  `;
+
+  html += `</div>`;
+
+  cont.innerHTML = html;
+
+  // ✅ asegurar render limpio fuera de pantalla
+  cont.style.position = "fixed";
+  cont.style.left = "-9999px";
+  cont.style.top = "0";
+  cont.style.width = "420px";
+
+  // ✅ GENERAR IMAGEN (mejor calidad)
+  html2canvas(cont, { scale: 2 }).then(canvas => {
+
+    let imgData = canvas.toDataURL("image/png");
+
+    // ✅ descargar
+    let link = document.createElement("a");
+    link.download = "presupuesto.png";
+    link.href = imgData;
+    link.click();
+
+    // ✅ guardamos para WhatsApp
+    window.imagenPresupuesto = imgData;
+  });
+
+}
+
+function copiarPresupuesto() {
+
+  let cliente = document.getElementById("clienteInput").value.trim();
+  let productosArray = Object.values(seleccionados);
+
+  if (productosArray.length === 0) {
+    alert("No hay productos en el presupuesto");
+    return;
+  }
+
+  let texto = "PRESUPUESTO\n\n";
+
+  // ✅ cliente opcional
+  if (cliente !== "") {
+    texto += "Cliente: " + cliente + "\n\n";
+  }
+
+  let total = 0;
+
+  productosArray.forEach(p => {
+
+    let precioUnit = Math.round(p.precio * (1 - descuentoGlobal / 100));
+    let precioFinal = Math.round(precioUnit * (1 - p.descuento / 100));
+    let subtotal = precioFinal * p.cantidad;
+
+    total += subtotal;
+
+    texto += "• " + p.descripcion + "  ";
+texto += "$" + precioFinal.toLocaleString('es-AR');
+
+// ✅ si cantidad es mayor a 1 → mostrar todo
+if (p.cantidad > 1) {
+
+  if (p.descuento > 0) {
+    texto += " (-" + p.descuento + "%)";
+  }
+
+  texto += " x" + p.cantidad;
+  texto += " = $" + subtotal.toLocaleString('es-AR');
+
+} else {
+  // ✅ cantidad = 1 → solo mostrar descuento si existe
+  if (p.descuento > 0) {
+    texto += " (-" + p.descuento + "%)";
+  }
+}
+
+texto += "\n";
+  });
+
+  texto += "\nTOTAL: $" + total.toLocaleString('es-AR');
+
+navigator.clipboard.writeText(texto).then(() => {
+
+let toast = document.getElementById("toastCopiado");
+
+if (toast) {
+  toast.style.opacity = "1";
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+  }, 1000);
+}// 1 segundo
+
+}).catch(() => {
+  alert("❌ No se pudo copiar");
+});
+}
+
+window.addEventListener("click", function (e) {
+  let modal = document.getElementById("modal");
+
+  // si el modal está abierto y hacés click en el fondo
+  if (e.target === modal) {
+    cerrarModal();
+  }
+});
+
+window.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") {
+    cerrarModal();
+  }
+});
+
+</script>
+
+
+
+<div id="exportar" style="
+  position: absolute;
+  left: -9999px;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  width: 650px;
+  font-family: Arial;
+">
+</div>
+
+
+<div id="toastCopiado" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #333;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+">
+  ✅ Presupuesto copiado
+</div>
+
+
+</body>
+</html>
