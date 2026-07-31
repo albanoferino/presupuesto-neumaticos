@@ -6,6 +6,20 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
+.input-desc-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-desc-wrap span {
+  position: absolute;
+  right: 12px;
+  color: #777;
+  pointer-events: none;
+  font-size: 12px;
+}
+
     body {
       font-family: Arial;
       margin: 0;
@@ -39,8 +53,8 @@ font-size: 13px;
 }
 
 .input-desc {
-  width: 80px;
-  padding: 12px;
+  width: 50px;
+  padding: 15px;
   border-radius: 15px;
   border: 1px solid #ccc;
   text-align: center;
@@ -334,14 +348,16 @@ padding: 6px 10px;
 
   <input id="buscador" placeholder="Buscar..." onkeyup="filtrar()">
 
+<div class="input-desc-wrap">
   <input 
     id="descuentoGlobal" 
     type="number" 
-    placeholder="% desc" 
+    value="40"
     class="input-desc"
     oninput="aplicarDescuentoGlobal()"
   >
-
+  <span>%</span>
+</div>
   <button class="boton" onclick="abrirModal()">Presupuesto</button>
 
 </div>
@@ -728,7 +744,7 @@ function filtrarClientes() {
 
 
 
-let descuentoGlobal = 0;
+let descuentoGlobal = 40;
 
 let formaPagoActual = "75";
 
