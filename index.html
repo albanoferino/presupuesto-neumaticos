@@ -19,16 +19,24 @@ font-size: 13px;
       justify-content: space-between;
       gap: 10px;
       margin-bottom: 15px;
-	 margin-top:70px;
+	 margin-top:10px;
     }
 
 
 .precio-unitario {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: right;
   color: #888;
   font-size: 12px;
-  text-align: right;
-}
+  padding: 0;
+  outline: none;
 
+}
+.precio-unitario:hover {
+  color: #ff7a00;
+}
 
 .input-desc {
   width: 80px;
@@ -246,6 +254,40 @@ padding: 6px 10px;
   color: #777;
 }
 
+.formas-pago {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+  margin-right: 5px;
+}
+
+.fp-opcion input {
+  display: none;
+}
+
+.fp-opcion span {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: white;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.fp-opcion span:hover {
+  border-color: #ff7a00;
+  color: #ff7a00;
+}
+
+.fp-opcion input:checked + span {
+  background: #ff7a00;
+  color: white;
+  border-color: #ff7a00;
+}
 
 }
 
@@ -254,21 +296,54 @@ padding: 6px 10px;
 
 <body>
 
+<div style="margin-top:60px; margin-bottom:8px;">
+
+  <div class="formas-pago">
+
+    <label class="fp-opcion" title="Contado">
+      <input type="radio" name="formaPago" value="contado" onchange="cambiarFormaPago()" />
+      <span>Contado</span>
+    </label>
+
+    <label class="fp-opcion" title="0-30-60 / 30 días">
+      <input type="radio" name="formaPago" value="30" onchange="cambiarFormaPago()" />
+      <span>30 días</span>
+    </label>
+
+    <label class="fp-opcion" title="0-30-60-90-120 / 30-60-90">
+      <input type="radio" name="formaPago" value="60" onchange="cambiarFormaPago()" />
+      <span>60 días</span>
+    </label>
+
+    <label class="fp-opcion" title="0-30-60-90-120-150 / 30-60-90-120">
+      <input type="radio" name="formaPago" value="75" checked onchange="cambiarFormaPago()" />
+      <span>75 días</span>
+    </label>
+
+    <label class="fp-opcion" title="0-30-60-90-120-150-180 / 30-60-90-120-150">
+      <input type="radio" name="formaPago" value="90" onchange="cambiarFormaPago()" />
+      <span>90 días</span>
+    </label>
+
+  </div>
+
+</div>
+
 
 <div class="topbar">
+
   <input id="buscador" placeholder="Buscar..." onkeyup="filtrar()">
 
+  <input 
+    id="descuentoGlobal" 
+    type="number" 
+    placeholder="% desc" 
+    class="input-desc"
+    oninput="aplicarDescuentoGlobal()"
+  >
 
-<input 
-  id="descuentoGlobal" 
-  type="number" 
-  placeholder="% desc" 
-  class="input-desc"
-  oninput="aplicarDescuentoGlobal()"
->
+  <button class="boton" onclick="abrirModal()">Presupuesto</button>
 
-
-  <button class="boton" onclick="abrirModal()">Presupuesto</button>                  
 </div>
 
 
@@ -392,6 +467,8 @@ let buscador = document.getElementById("buscador"); // ✅ PEGAR ACÁ
 
 let seleccionados = {};
 
+let editandoPrecio = null;
+
 
 function mostrarLista(lista) {
   let cont = document.getElementById("lista");
@@ -423,7 +500,10 @@ div.ondblclick = () => {
       <input type="checkbox" ${estaSeleccionado ? "checked" : ""} onchange="toggle('${p.codigo}'); filtrar()">
       <div>${p.codigo}</div>
       <div>${p.descripcion}</div>
-      <div>$${Math.round(p.precio * (1 - descuentoGlobal / 100)).toLocaleString('es-AR')}</div>
+      <div>$${Math.round(
+  calcularPrecioFormaPago(p.precio) *
+  (1 - descuentoGlobal / 100)
+).toLocaleString('es-AR')}</div>
       <div>${p.stock}</div>
     `;
 
@@ -448,11 +528,15 @@ function toggle(cod) {
     delete seleccionados[cod];
   } else {
     let p = productos.find(x => x.codigo === cod);
-    seleccionados[cod] = {
-      ...p,
-      cantidad: 1,
-      descuento: 0
-    };
+  seleccionados[cod] = {
+  ...p,
+  cantidad: 1,
+  descuento: descuentoGlobal,
+ precioFinal: Math.round(
+  calcularPrecioFormaPago(p.precio) *
+  (1 - descuentoGlobal / 100)
+)
+};
   }
 }
 
@@ -483,9 +567,7 @@ if (Object.keys(seleccionados).length === 0) {
 Object.entries(seleccionados).forEach(([cod, p]) => {
 
     
-let precioConGlobal = p.precio * (1 - descuentoGlobal / 100);
-
-let subtotal = precioConGlobal * p.cantidad * (1 - p.descuento / 100);
+let subtotal = p.precioFinal * p.cantidad;
 
     total += subtotal;
 
@@ -496,12 +578,23 @@ div.innerHTML = `
 
   <div>${p.descripcion}</div>
 
-  <div class="precio-unitario">
-    $ ${Math.round(p.precio * (1 - descuentoGlobal / 100)).toLocaleString('es-AR')}
-  </div>
+<input
+  type="number"
+  class="precio-unitario"
+  value="${p.precioFinal}"
+  onchange="updatePrecioFinal('${p.codigo}', this.value)"
+  ondblclick="habilitarPrecio(this)"
+  onblur="bloquearPrecio(this)"
+  readonly
+>
 
   <input type="number" value="${p.cantidad}" onchange="updateCant('${p.codigo}', this.value)">
-  <input type="number" value="${p.descuento}" onchange="updateDesc('${p.codigo}', this.value)">
+<input
+  type="number"
+  step="0.01"
+  value="${Number(p.descuento).toFixed(2)}"
+  onchange="updateDesc('${p.codigo}', this.value)"
+>
 
   <div>
     <span style="color:#888; margin-right:4px;">$</span>
@@ -540,8 +633,52 @@ function updateCant(cod, val) {
 }
 
 function updateDesc(cod, val) {
-  seleccionados[cod].descuento = Number(val);
+
+  let p = seleccionados[cod];
+
+  p.descuento = Number(val);
+
+  p.precioFinal = Math.round(
+    p.precio * (1 - p.descuento / 100)
+  );
+
   renderPresupuesto();
+
+}
+
+function updatePrecioFinal(cod, val) {
+
+  let p = seleccionados[cod];
+
+  p.precioFinal = Number(val);
+
+  p.descuento =
+    (1 - (p.precioFinal / p.precio)) * 100;
+
+  renderPresupuesto();
+}
+
+function habilitarPrecio(input) {
+
+  input.removeAttribute("readonly");
+
+  input.style.backgroundColor = "#fff";
+  input.style.border = "1px solid #ff7a00";
+  input.style.borderRadius = "8px";
+  input.style.padding = "4px 6px";
+
+  input.focus();
+  input.select();
+}
+
+function bloquearPrecio(input) {
+
+  input.setAttribute("readonly", true);
+
+  input.style.backgroundColor = "transparent";
+  input.style.border = "none";
+  input.style.borderRadius = "0";
+  input.style.padding = "0";
 }
 
 mostrarLista(productos);
@@ -593,6 +730,24 @@ function filtrarClientes() {
 
 let descuentoGlobal = 0;
 
+let formaPagoActual = "75";
+
+const ajustesFormaPago = {
+  "contado": -6.60,
+  "30": -3.71,
+  "60": -1.25,
+  "75": 0,
+  "90": 1.31
+};
+
+function calcularPrecioFormaPago(precioBase) {
+
+  let ajuste = ajustesFormaPago[formaPagoActual] || 0;
+
+  return precioBase * (1 + ajuste / 100);
+}
+
+
 
 function aplicarDescuentoGlobal() {
 
@@ -600,9 +755,50 @@ function aplicarDescuentoGlobal() {
 
   descuentoGlobal = valor || 0;
 
+  // actualizar productos seleccionados
+
+  Object.values(seleccionados).forEach(p => {
+
+    p.descuento = descuentoGlobal;
+
+    p.precioFinal = Math.round(
+      p.precio * (1 - descuentoGlobal / 100)
+    );
+
+  });
+
   if (!productos || productos.length === 0) return;
 
   filtrar();
+
+  renderPresupuesto();
+}
+
+function cambiarFormaPago() {
+
+  let seleccionado = document.querySelector(
+    'input[name="formaPago"]:checked'
+  );
+
+  if (!seleccionado) return;
+
+  formaPagoActual = seleccionado.value;
+
+  Object.values(seleccionados).forEach(p => {
+
+    let nuevaBase = calcularPrecioFormaPago(p.precio);
+
+    p.descuento = descuentoGlobal;
+
+    p.precioFinal = Math.round(
+      nuevaBase * (1 - descuentoGlobal / 100)
+    );
+
+  });
+
+  filtrar();
+
+  renderPresupuesto();
 }
 
 
@@ -665,9 +861,8 @@ function generarPreview() {
   // ✅ productos
   productosArray.forEach(p => {
 
-    let precioUnit = Math.round(p.precio * (1 - descuentoGlobal / 100));
-    let precioFinal = precioUnit * (1 - p.descuento / 100);
-    let subtotal = precioFinal * p.cantidad;
+    let precioFinal = p.precioFinal;
+let subtotal = precioFinal * p.cantidad;
 
     total += subtotal;
 
@@ -788,9 +983,8 @@ function copiarPresupuesto() {
 
   productosArray.forEach(p => {
 
-    let precioUnit = Math.round(p.precio * (1 - descuentoGlobal / 100));
-    let precioFinal = Math.round(precioUnit * (1 - p.descuento / 100));
-    let subtotal = precioFinal * p.cantidad;
+let precioFinal = Math.round(p.precioFinal);
+let subtotal = precioFinal * p.cantidad;
 
     total += subtotal;
 
@@ -800,18 +994,7 @@ texto += "$" + precioFinal.toLocaleString('es-AR');
 // ✅ si cantidad es mayor a 1 → mostrar todo
 if (p.cantidad > 1) {
 
-  if (p.descuento > 0) {
-    texto += " (-" + p.descuento + "%)";
-  }
 
-  texto += " x" + p.cantidad;
-  texto += " = $" + subtotal.toLocaleString('es-AR');
-
-} else {
-  // ✅ cantidad = 1 → solo mostrar descuento si existe
-  if (p.descuento > 0) {
-    texto += " (-" + p.descuento + "%)";
-  }
 }
 
 texto += "\n";
