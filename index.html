@@ -652,13 +652,16 @@ function updateDesc(cod, val) {
 
   let p = seleccionados[cod];
 
+  let precioBase = calcularPrecioFormaPago(p.precio);
+
   p.descuento = Number(val);
 
   p.precioFinal = Math.round(
-    p.precio * (1 - p.descuento / 100)
+    precioBase * (1 - p.descuento / 100)
   );
 
   renderPresupuesto();
+
 
 }
 
@@ -666,10 +669,12 @@ function updatePrecioFinal(cod, val) {
 
   let p = seleccionados[cod];
 
+  let precioBase = calcularPrecioFormaPago(p.precio);
+
   p.precioFinal = Number(val);
 
   p.descuento =
-    (1 - (p.precioFinal / p.precio)) * 100;
+    (1 - (p.precioFinal / precioBase)) * 100;
 
   renderPresupuesto();
 }
