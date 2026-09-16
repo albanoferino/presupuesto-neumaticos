@@ -825,13 +825,17 @@ function cambiarFormaPago() {
 
 function copiarProducto(p) {
 
-  let precioConDesc = Math.round(p.precio * (1 - descuentoGlobal / 100));
+  let precioConDesc = Math.round(
+    calcularPrecioFormaPago(p.precio) *
+    (1 - descuentoGlobal / 100)
+  );
 
   let texto = `${p.descripcion} - $${precioConDesc.toLocaleString('es-AR')}`;
 
   navigator.clipboard.writeText(texto);
 
   console.log("Copiado:", texto);
+
 }
 
 function generarImagen() {
